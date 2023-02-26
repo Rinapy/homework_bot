@@ -29,7 +29,7 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(module)s %(funcName)s %(message)s',
+                    format='%(asctime)s [%(levelname)s] -- %(message)s',
                     handlers=[logging.FileHandler("my_log.log", mode='w'),
                               stream_handler])
 
@@ -125,10 +125,20 @@ def main():
     """Основная логика работы бота."""
     if not check_tokens():
         sys.exit('Проверьте, заданы ли все токены')
-
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     prev_message = ''
+    start_message = 'I come back'
+    try:
+        send_message(bot, start_message)
+    except SendMessageError:
+        logging.error('Сбой при отправке сообщения в Telegram')
+    except Exception as error:
+        message = f'Сбой в работе программы: {error}'
+        if message != prev_message:
+            prev_message = message
+            logging.error(message)
+            send_message(bot, message)
 
     while True:
         try:
