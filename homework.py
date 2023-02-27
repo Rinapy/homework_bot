@@ -37,6 +37,7 @@ logging.basicConfig(level=logging.DEBUG,
 def send_message(bot, message):
     """Отправка сообщения в телеграм."""
     try:
+        logging.debug(f"Попытка отправть сообщение - {message}")
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
             text=message,
@@ -44,7 +45,7 @@ def send_message(bot, message):
         logging.debug('Сообщение отправлено')
     except telegram.TelegramError:
         logging.error('Сбой при отправке сообщения в Telegram', exc_info=True)
-        raise SendMessageError('Сбой при отправке сообщения в Telegram')
+        raise SendMessageError
 
 
 def get_api_answer(current_timestamp):
@@ -56,15 +57,12 @@ def get_api_answer(current_timestamp):
     except requests.exceptions.RequestException:
         logging.error(f'Ошибка при запросе к эндпоинту: {ENDPOINT},'
                       f'параметры запроса: {params}')
-        raise APIAnswerError(f'Ошибка при запросе к эндпоинту: {ENDPOINT},'
-                             f'параметры запроса: {params}')
+        raise APIAnswerError
     if response.status_code != 200:
         logging.error('Ответ от эндпоинта отличный от 200'
                       f'Эндпоинт: {ENDPOINT}, Параметры: {params},'
                       f'Ответ: {response.status_code}')
-        raise APIAnswerError('Ответ от эндпоинта отличный от 200'
-                             f'Эндпоинт: {ENDPOINT}, Параметры: {params},'
-                             f'Ответ: {response.status_code}')
+        raise APIAnswerError
     return response.json()
 
 
@@ -72,15 +70,13 @@ def check_response(response):
     """Проверка ответа."""
     if not isinstance(response, dict):
         logging.error(f'Тип ответа API - не словарь: {response}')
-        raise TypeError(f'Тип ответа API - не словарь: {response}')
+        raise TypeError
     if 'homeworks' not in response:
         logging.error(f'Отсутствует ключ homeworks в ответе API: {response}')
-        raise KeyError(
-            f'Отсутствует ключ homeworks в ответе API: {response}'
-        )
+        raise KeyError
     if not isinstance(response['homeworks'], list):
         logging.error(f'Тип ответа API - не список: {response}')
-        raise TypeError(f'Тип ответа API - не список: {response}')
+        raise TypeError
     homeworks = response['homeworks']
     try:
         homeworks[0]
@@ -100,8 +96,7 @@ def parse_status(homework):
     if homework_status not in HOMEWORK_VERDICTS:
         logging.error('Недокументированный статус домашней работы обнаружен'
                       ' в ответе API')
-        raise KeyError('Недокументированный статус домашней работы обнаружен'
-                       ' в ответе API')
+        raise KeyError
     verdict = HOMEWORK_VERDICTS[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
