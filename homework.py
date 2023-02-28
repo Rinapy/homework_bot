@@ -68,7 +68,7 @@ def get_api_answer(current_timestamp):
         message_error = (
             f'Ошибка при запросе к эндпоинту: {ENDPOINT},'
             f'параметры запроса: {params}'
-        ) 
+        )
         logging.error(message_error)
         raise APIAnswerError(message_error)
     if response.status_code != 200:
@@ -110,7 +110,7 @@ def parse_status(homework):
     """Получение статуса домашней работы."""
     if ('homework_name' or 'status') not in homework:
         message_error = ('Отсутству необходимые ключи'
-                         ' "homework_name", "status"' )
+                         ' "homework_name", "status"')
         logging.error(message_error)
         raise KeyError(message_error)
     homework_name = homework['homework_name']
