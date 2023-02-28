@@ -28,10 +28,13 @@ HOMEWORK_VERDICTS = {
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.DEBUG)
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s [%(levelname)s] -- %(message)s',
-                    handlers=[logging.FileHandler("my_log.log", mode='w'),
-                              stream_handler])
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s [%(levelname)s] -- %(message)s',
+    handlers=[
+        logging.FileHandler("my_log.log", mode='w'),
+        stream_handler]
+    )
 
 
 def send_message(bot, message):
@@ -44,7 +47,10 @@ def send_message(bot, message):
         )
         logging.debug('Сообщение отправлено')
     except telegram.TelegramError:
-        logging.error('Сбой при отправке сообщения в Telegram', exc_info=True)
+        logging.error(
+            'Сбой при отправке сообщения в Telegram',
+            exc_info=True
+            )
         raise SendMessageError
 
 
@@ -53,15 +59,23 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        response = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
     except requests.exceptions.RequestException:
-        logging.error(f'Ошибка при запросе к эндпоинту: {ENDPOINT},'
-                      f'параметры запроса: {params}')
+        logging.error(
+            f'Ошибка при запросе к эндпоинту: {ENDPOINT},'
+            f'параметры запроса: {params}'
+        )
         raise APIAnswerError
     if response.status_code != 200:
-        logging.error('Ответ от эндпоинта отличный от 200'
-                      f'Эндпоинт: {ENDPOINT}, Параметры: {params},'
-                      f'Ответ: {response.status_code}')
+        logging.error(
+            'Ответ от эндпоинта отличный от 200'
+            f'Эндпоинт: {ENDPOINT}, Параметры: {params},'
+            f'Ответ: {response.status_code}'
+        )
         raise APIAnswerError
     return response.json()
 
@@ -69,20 +83,25 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Проверка ответа."""
     if not isinstance(response, dict):
-        logging.error(f'Тип ответа API - не словарь: {response}')
+        logging.error(
+            f'Тип ответа API - не словарь: {response}'
+        )
         raise TypeError
     if 'homeworks' not in response:
-        logging.error(f'Отсутствует ключ homeworks в ответе API: {response}')
+        logging.error(
+            f'Отсутствует ключ homeworks в ответе API: {response}'
+        )
         raise KeyError
     if not isinstance(response['homeworks'], list):
-        logging.error(f'Тип ответа API - не список: {response}')
+        logging.error(
+            f'Тип ответа API - не список: {response}'
+        )
         raise TypeError
     homeworks = response['homeworks']
     try:
         homeworks[0]
     except IndexError:
         logging.debug('Нет новых статусов домашек')
-
     return homeworks
 
 
@@ -94,8 +113,10 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status not in HOMEWORK_VERDICTS:
-        logging.error('Недокументированный статус домашней работы обнаружен'
-                      ' в ответе API')
+        logging.error(
+            'Недокументированный статус домашней работы обнаружен'
+            ' в ответе API'
+        )
         raise KeyError
     verdict = HOMEWORK_VERDICTS[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -103,15 +124,20 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка указаны ли все токены."""
-    env_vars = {'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-                'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-                'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
-    none_env_vars = [env_var_name
-                     for env_var_name, env_var in env_vars.items()
-                     if env_var is None]
+    env_vars = {
+        'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+        'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+        'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID}
+    none_env_vars = [
+        env_var_name
+        for env_var_name, env_var in env_vars.items()
+        if env_var is None
+    ]
     if none_env_vars:
-        logging.critical(f'Отсутствие обязательных переменных окружения во '
-                         f'время запуска бота: {", ".join(none_env_vars)}')
+        logging.critical(
+            f'Отсутствие обязательных переменных окружения во '
+            f'время запуска бота: {", ".join(none_env_vars)}'
+        )
         return False
     return True
 
@@ -128,7 +154,10 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
-            current_timestamp = response.get('current_date', current_timestamp)
+            current_timestamp = response.get(
+                'current_date',
+                current_timestamp
+            )
             if homeworks:
                 message = parse_status(homeworks[0])
                 if message != prev_message:
