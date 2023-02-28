@@ -33,8 +33,8 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] -- %(message)s',
     handlers=[
         logging.FileHandler("my_log.log", mode='w'),
-        stream_handler]
-    )
+        stream_handler],
+)
 
 
 def send_message(bot, message):
@@ -49,8 +49,7 @@ def send_message(bot, message):
     except telegram.TelegramError:
         logging.error(
             'Сбой при отправке сообщения в Telegram',
-            exc_info=True
-            )
+            exc_info=True)
         raise SendMessageError
 
 
